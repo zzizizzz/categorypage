@@ -1,0 +1,119 @@
+20240105
+필터
++전후 처리 담당하는 서블릿의api 다
++전처리 작업 : 로그인체크, 권한체크, 암호화된 요청데이터의 복호화, 요청파라미터에 대한 로그출력
++후처리 작업 : 응답데이터의 암호화, 응답컨텐츠 압축, 요청처리에 소요된 시간 출력(요청처리 선능)
++필터는 여러개 등록할수 있고 , 등록된 필더을FiltetChain객체에 의해서 관리된다.
++FiltetChain객체는 요청이 접수되면 등록된 필터들 순서대로 실행되고, 더이상 실행할 필터가 없으면 jsp가ㅏ 실행한다.
+
+
+======================================================================================================================== 
+
+
+일정 등록 
+	+일정 카테로리 출력하기
+		+todo-categories.xml에 SQL 구문 정의하기
+			모든 일정 카테고리를 조회하는 SQL구문 정의하기
+
+
+
+
+	+.TodoCategoryDao 클레스에 모든 일정카테고리를 반환하는 메소드 정의하기
+			위에서 정의한 SQL 구문을 실행해서 모든 일정카테고리를
+			반환하는 메소드를 정의한다.
+
+
+
+	+form.jsp에 일정 카테고리를 출력하기
+			위에서 정의한 TodoCategoryDao의 메소드를 실행해서 모든 카테고리 정보를 조회한다.
+			조회된 카테고리 목록으로 <option> 태그를 생성한다.
+
+
+2.일정 등록하기
+	+comm_todos테이블에 신규 일정 등록시 필효한값
+		todo_no, 					시퀸스값
+		category_no, 				폼입력값
+		todo_title,					폼 입력값
+		user_no 					로그인한 사용자 번호(세션에서 획득)
+		todo_expected_date, 		폼 입력값
+		todo_content				폼 입력값
+
+
+	+todos.xml에서 SQL구문 정의하기
+		<insert id = "insertTodo" parameterClass="">
+			insert into comm_todos
+			(todo_no,category_no,todo_title,todo_expected_date, todo_content)
+			values
+			(todo_seq.nextval, ?,?,?,?,?)	
+		</insert>
+
+	+	TodoDao에 새일정 정보를 전달받아서 저장시키는 메소드 정의하기
+
+	+ 	insert.jsp에서 새 일정정보 등록 요청 처리하기
+			0. 로그인여부를 체크한다.
+				세션에서 로그인된 사용자 정보를 조회해서 사용자 정보가 존재하지 않으면
+				로그인폼을 재요청하는 응답을 보내고 , return 문을 실행한다.
+			1. 폼에서 제출하는 요청파라미터 파악하기
+				categoryNo=101
+				&title=제목제목제목
+				&expectedDate=2024-01-24
+				&contend=내용내용내용
+
+			2. 요청파라미터 값 조회하기
+			3. VO객체(Todo객체)를 생성하고, 요청파라미터값을 저장한다.
+			4. 로그인된 사용자정보에서 사용자 번호를 조회하고 VO객체에 저장한다.
+			5. DAO객체를 생성하고, 새일정을 등록시키는 메소드를 실행한다.
+			6. 일정목록을 재요청하는 URL을 응답으로 보낸다.
+
+
+
+3.일정조회하기 (페이징처리)
+	+todos.xml에 sql구문 정의하기
+		*모든 행의 갯수를 조회하는 SQL-----> 총 페이지 갯수
+			<select id = "getTotalRows" resultClass="int">
+				select count(*)
+				from comm_todos
+				where todo_deleted = 'N'
+			</select>
+		* 현재 요청한 페이지번호의 조회 범위에 맞는 일정목록을 조회하는 SQL
+			<select id = "getTodos" parameterClass="map" resultClass="vo.Todo">
+			</select>
+
+	+ TodoDao 클래스에 메소드 정의하기
+		모든 행의 갯수를 반환하는 메소드
+		
+
+		조회범위를 전달받아서 범위에 맞는 일정 목록을 반환하는 메소드
+
+	+list.jsp
+		1. 클라이언트가 요청한 페이지 조회하기
+				int currentPage= NumberUtils.toInt(request.getparameter("page")1)  // 현재 요청한 페이지가 없으면 1로 반환됨
+		2. 전체 행의 갯수를 조회하기
+				int total	Rows = todoDao.getTotalRows();
+		3.페이징 처리가 필요한 데이터를 제공한 Pagination객체를 생성하기
+				Pagination pagination  = new Pagination(currentPage, total(Rows);
+					조회범위 : begin, end
+					페이지 표시 범위 : beginPage, endPage
+					요청한 현재 페이지가 첫페이지 인지, 마지막 페이지인지 여부 : isFirst, isEnd
+
+		4. 요청한 페이지 번호에 맞는 일정 목록 조회하기   <--- begin , end
+
+		5. 요청한 페이지번호에 맞게 페이지내비게이션 출력하기 < --- beginPage, endPage, isFirst, isLast
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
